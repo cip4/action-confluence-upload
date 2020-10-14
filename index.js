@@ -54,13 +54,24 @@ async function run() {
         })
             .then(res => res.json())
             .then(json => {
-                console.log(json);
 
-                // add label
-                const body = '[{"prefix": "global", "name": "' + label + '"}]';
+
+                // create body
+                const arrLabel = label.split(",");
+
+                const body = [];
+
+                for(var lbl of arrLabel) {
+                    body.push({ 
+                        "prefix" : "global",
+                        "name" : lbl.trim(),
+                    });
+                }
+
+                // make REST cal
                 const attachmentId = json.results[0].id;
 
-                fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: body })
+                fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
                     .then(res => res.json())
                     .then(json => console.log(json))
                     .catch(err => core.setFailed(err));
