@@ -30,10 +30,15 @@ async function run() {
 
     for (const attachment of attachments.results) {
         const labelsAttachment = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })).json();
+        console.log(labelsAttachment)
+        console.log(labels)
+        console.log(labelsAttachment.results.every(v => labels.includes(v)))
 
         if (labelsAttachment.results.length > 0 && labelsAttachment.results.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers });
             console.log("Attachment " + attachment.name + " has been deleted.")
+        } else {
+
         }
     };
 
