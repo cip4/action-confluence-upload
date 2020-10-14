@@ -1,0 +1,24 @@
+name: 'Confluence Upload'
+description: 'Upload a file to confluence'
+inputs:
+  url: 
+    description: 'The Confluence URL (https://confluence.example.org)'
+    required: true
+  username: 
+    description: 'The username'
+    required: true
+  password: 
+    description: 'The password'
+    required: true
+  contentId:
+    description: 'The contentId or pageId'
+    required: true
+  label:
+    description: 'The label of the attachment(s)'
+    required: true
+  filePattern:
+    description: 'The glob file pattern'
+    required: true
+runs:
+  using: 'node12'
+  main: 'index.js'
