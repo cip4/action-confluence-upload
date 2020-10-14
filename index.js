@@ -12,8 +12,7 @@ const url = core.getInput('url');
 const username = core.getInput('username');
 const password = core.getInput('password');
 const contentId = core.getInput('contentId');
-const label = core.getInput('label');
-const labelOverwrite = core.getInput('labelOverwrite');
+const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
 
@@ -30,9 +29,9 @@ async function run() {
     const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })).json();
 
     for (const attachment of attachments.results) {
-        const labels = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })).json();
+        const labelsAttachment = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })).json();
 
-        if (labels.results.length > 0 && labels.results[0].name == label) {
+        if (labelsAttachment.results.length > 0 && labelsAttachment.results.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers });
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
@@ -57,14 +56,12 @@ async function run() {
 
 
                 // create body
-                const arrLabel = label.split(",");
-
                 const body = [];
 
-                for(var lbl of arrLabel) {
+                for(var label of labels) {
                     body.push({ 
                         "prefix" : "global",
-                        "name" : lbl.trim(),
+                        "name" : label.trim(),
                     });
                 }
 
