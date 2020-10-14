@@ -37,15 +37,9 @@ async function run() {
             labelsAttachment.push(result.name)
         }
 
-        console.log(labelsAttachment)
-        console.log(labels)
-        console.log(labelsAttachment.every(v => labels.includes(v)))
-
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers });
             console.log("Attachment " + attachment.name + " has been deleted.")
-        } else {
-
         }
     };
 
