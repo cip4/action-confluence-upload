@@ -19,8 +19,8 @@ This action can be used to upload and label an artifact in Confluence.
     # The pageId of the target confluence page
     contentId: 15663320
     
-    # The attachements label on confluence. (Same labels are going to be replaced during upload)
-    label: 'my-label'
+    # The attachements label on confluence - comma separated. (Same labels are going to be replaced during upload)
+    label: 'my-label,label-2'
     
     # The glob pattern identifying the files to be uploaed
     filePattern: '**/*.txt'
