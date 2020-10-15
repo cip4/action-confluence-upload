@@ -38,6 +38,7 @@ async function run() {
         }
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
+            await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers });
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers });
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
