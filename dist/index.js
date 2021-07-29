@@ -12,7 +12,6 @@ const fs = __nccwpck_require__(747);
 const FormData = __nccwpck_require__(334);
 const path = __nccwpck_require__(622);
 
-
 // intput params
 const url = core.getInput('url');
 const username = core.getInput('username');
@@ -21,9 +20,7 @@ const contentId = core.getInput('contentId');
 const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
-
-async function run() {
-
+async function attachments(username, password, url, contentId, filePattern, labels) {
     // define headers
     const headers = {
         'X-Atlassian-Token': 'nocheck',
@@ -32,13 +29,13 @@ async function run() {
     };
 
     // delete old files
-    const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", {
+    const attachments = await(await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", {
         method: 'GET',
         headers: headers
     })).json();
 
     for (const attachment of attachments.results) {
-        const resp = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", {
+        const resp = await(await fetch(url + "/rest/api/content/" + attachment.id + "/label", {
             method: 'GET',
             headers: headers
         })).json();
@@ -68,7 +65,7 @@ async function run() {
         const fd = new FormData();
         fd.append('file', fs.readFileSync(file), path.basename(file));
 
-        fetch(url + '/rest/api/content/' + contentId + '/child/attachment', {
+        return fetch(url + '/rest/api/content/' + contentId + '/child/attachment', {
             method: 'POST',
             headers: {
                 'X-Atlassian-Token': 'nocheck',
@@ -83,7 +80,7 @@ async function run() {
                 // create body
                 const body = [];
 
-                for (var label of labels) {
+                for (let label of labels) {
                     body.push({
                         "prefix": "global",
                         "name": label.trim(),
@@ -99,20 +96,20 @@ async function run() {
                     body: JSON.stringify(body)
                 })
                     .then(res => res.json())
-                    .then(json => console.log(json))
-                    .catch(err => core.setFailed(err));
-
+                    .then(json => console.log(json));
             })
-            .catch(err => core.setFailed(err));
     }
+
 }
 
-
-try {
-    run();
-} catch (error) {
-    core.setFailed(error);
-}
+attachments(
+    username,
+    password,
+    url,
+    contentId,
+    filePattern,
+    labels
+)
 
 
 /***/ }),
