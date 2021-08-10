@@ -2,15 +2,117 @@ require('./sourcemap-register.js');module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 932:
-/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+/***/ 423:
+/***/ ((module, __unused_webpack_exports, __nccwpck_require__) => {
 
-const core = __nccwpck_require__(186);
 const glob = __nccwpck_require__(90);
 const fetch = __nccwpck_require__(467);
 const fs = __nccwpck_require__(747);
 const FormData = __nccwpck_require__(334);
 const path = __nccwpck_require__(622);
+
+module.exports = class Confluence {
+
+    constructor(username, password, url) {
+        this.username = username;
+        this.password = password;
+        this.url = url;
+    }
+
+    async attachments(contentId, filePattern, labels) {
+        // define headers
+        const headers = {
+            'X-Atlassian-Token': 'nocheck',
+            'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64'),
+            'Content-Type': 'application/json'
+        };
+
+        // delete old files
+        const attachments = await (await fetch(this.url + "/rest/api/content/" + contentId + "/child/attachment", {
+            method: 'GET',
+            headers: headers
+        })).json();
+
+        for (const attachment of attachments.results) {
+            const resp = await (await fetch(this.url + "/rest/api/content/" + attachment.id + "/label", {
+                method: 'GET',
+                headers: headers
+            })).json();
+
+            const labelsAttachment = [];
+
+            for (const result of resp.results) {
+                labelsAttachment.push(result.name)
+            }
+
+            if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
+                await fetch(this.url + "/rest/api/content/" + attachment.id, {method: 'DELETE', headers: headers});
+                await fetch(this.url + "/rest/api/content/" + attachment.id + "?status=trashed", {
+                    method: 'DELETE',
+                    headers: headers
+                });
+                console.log("Attachment " + attachment.name + " has been deleted.")
+            }
+        }
+
+        // upload files
+        const globber = await glob.create(filePattern)
+
+        for await (const file of globber.globGenerator()) {
+            console.log("Upload " + file);
+
+            const fd = new FormData();
+            fd.append('file', fs.readFileSync(file), path.basename(file));
+
+            return fetch(this.url + '/rest/api/content/' + contentId + '/child/attachment', {
+                method: 'POST',
+                headers: {
+                    'X-Atlassian-Token': 'nocheck',
+                    'Authorization': 'Basic ' + Buffer.from(this.username + ':' + this.password).toString('base64')
+                },
+                body: fd
+            })
+                .then(res => res.json())
+                .then(json => {
+
+                    if (json.statusCode === 400) {
+                        throw new Error(json.message)
+                    }
+
+                    // create body
+                    const body = [];
+
+                    for (let label of labels) {
+                        body.push({
+                            "prefix": "global",
+                            "name": label.trim(),
+                        });
+                    }
+
+                    // make REST cal
+                    const attachmentId = json.results[0].id;
+
+                    fetch(this.url + '/rest/api/content/' + attachmentId + '/label', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(body)
+                    })
+                        .then(res => res.json())
+                        .then(json => console.log(json));
+                })
+        }
+
+    }
+
+}
+
+/***/ }),
+
+/***/ 932:
+/***/ ((__unused_webpack_module, __unused_webpack_exports, __nccwpck_require__) => {
+
+const core = __nccwpck_require__(186);
+const confluence = __nccwpck_require__(423)
 
 // intput params
 const url = core.getInput('url');
@@ -20,96 +122,8 @@ const contentId = core.getInput('contentId');
 const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
-async function attachments(username, password, url, contentId, filePattern, labels) {
-    // define headers
-    const headers = {
-        'X-Atlassian-Token': 'nocheck',
-        'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64'),
-        'Content-Type': 'application/json'
-    };
-
-    // delete old files
-    const attachments = await(await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", {
-        method: 'GET',
-        headers: headers
-    })).json();
-
-    for (const attachment of attachments.results) {
-        const resp = await(await fetch(url + "/rest/api/content/" + attachment.id + "/label", {
-            method: 'GET',
-            headers: headers
-        })).json();
-
-        const labelsAttachment = [];
-
-        for (const result of resp.results) {
-            labelsAttachment.push(result.name)
-        }
-
-        if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
-            await fetch(url + "/rest/api/content/" + attachment.id, {method: 'DELETE', headers: headers});
-            await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", {
-                method: 'DELETE',
-                headers: headers
-            });
-            console.log("Attachment " + attachment.name + " has been deleted.")
-        }
-    }
-
-    // upload files
-    const globber = await glob.create(filePattern)
-
-    for await (const file of globber.globGenerator()) {
-        console.log("Upload " + file);
-
-        const fd = new FormData();
-        fd.append('file', fs.readFileSync(file), path.basename(file));
-
-        return fetch(url + '/rest/api/content/' + contentId + '/child/attachment', {
-            method: 'POST',
-            headers: {
-                'X-Atlassian-Token': 'nocheck',
-                'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64')
-            },
-            body: fd
-        })
-            .then(res => res.json())
-            .then(json => {
-
-
-                // create body
-                const body = [];
-
-                for (let label of labels) {
-                    body.push({
-                        "prefix": "global",
-                        "name": label.trim(),
-                    });
-                }
-
-                // make REST cal
-                const attachmentId = json.results[0].id;
-
-                fetch(url + '/rest/api/content/' + attachmentId + '/label', {
-                    method: 'POST',
-                    headers: headers,
-                    body: JSON.stringify(body)
-                })
-                    .then(res => res.json())
-                    .then(json => console.log(json));
-            })
-    }
-
-}
-
-attachments(
-    username,
-    password,
-    url,
-    contentId,
-    filePattern,
-    labels
-)
+const co = new confluence(username, password, url);
+co.attachments(contentId, filePattern, labels)
 
 
 /***/ }),

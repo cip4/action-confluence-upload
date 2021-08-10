@@ -11,6 +11,9 @@ jobs:
       - uses: actions/checkout@v2
       - run: npm ci
       - run: npm test
+        env:
+          ATLASSIAN_USER: ${{ secrets.ATLASSIAN_USER }}
+          ATLASSIAN_TOKEN: ${{ secrets.ATLASSIAN_TOKEN }}
 
   # test action works running from the graph
   test:
