@@ -21,10 +21,14 @@ module.exports = class Confluence {
         };
 
         // delete old files
-        const attachments = await (await fetch(this.url + "/rest/api/content/" + contentId + "/child/attachment", {
+        const attachmentsResp = await (await fetch(this.url + "/rest/api/content/" + contentId + "/child/attachment", {
             method: 'GET',
             headers: headers
-        })).json();
+        }));
+        if (attachmentsResp.status === 401) {
+            throw new Error("Authentication failed. Check your credentials.");
+        }
+        const attachments = attachmentsResp.json();
 
         for (const attachment of attachments.results) {
             const resp = await (await fetch(this.url + "/rest/api/content/" + attachment.id + "/label", {
