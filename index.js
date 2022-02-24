@@ -27,9 +27,15 @@ async function run() {
 
     // delete old files
     const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })).json();
+    if (attachments.message) {
+        return core.setFailed(attachments.message);
+    }
 
     for (const attachment of attachments.results) {
         const resp = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })).json();
+        if (resp.message) {
+            return core.setFailed(resp.message);
+        }
         
         const labelsAttachment = [];
 
