@@ -100,10 +100,7 @@ async function run() {
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
                     .then(res => res.json())
                     .then(json => console.log(json))
-                    .catch(err => core.setFailed(err));
-
             })
-            .catch(err => core.setFailed(err));
     }
 }
 
