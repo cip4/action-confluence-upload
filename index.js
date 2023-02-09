@@ -111,5 +111,6 @@ async function run() {
 try {
     run();
 } catch (error) {
+    core.debug(error.stack);
     core.setFailed(error);
 }
