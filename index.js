@@ -11,7 +11,8 @@ const url = core.getInput('url');
 const username = core.getInput('username');
 const password = core.getInput('password');
 const contentId = core.getInput('contentId');
-const labels = core.getInput('label').split(",");
+const labels = core.getInput('label').split(",")
+    .map(label => label.replaceAll('.', '_'));
 const filePattern = core.getInput('filePattern');
 
 const parseResponse = async response => {
