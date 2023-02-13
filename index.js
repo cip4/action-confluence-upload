@@ -14,13 +14,13 @@ const contentId = core.getInput('contentId');
 const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
-const checkStatus = async response => {
+const parseResponse = async response => {
+    const body = await response.text();
+    const json = JSON.parse(body.toJSON());
     if (response.ok) {
         // response.status >= 200 && response.status < 300
-        return response;
+        return json;
     } else {
-        const json = await response.json();
-        const body = await response.text();
         console.debug(new Error().stack);
         console.debug(`HTTP Error Response: ${response.status} ${response.statusText}\n${body}`)
         return core.setFailed(json.message);
@@ -39,14 +39,12 @@ async function run() {
     // delete old files
     const attachments = await
         fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })
-            .then(checkStatus)
-            .then(res => res.json());
+            .then(parseResponse);
 
     for (const attachment of attachments.results) {
         const resp = await
             fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })
-            .then(checkStatus)
-            .then(res => res.json());
+            .then(parseResponse);
 
         const labelsAttachment = [];
 
@@ -56,9 +54,9 @@ async function run() {
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers })
-                .then(checkStatus);
+                .then(parseResponse);
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
-                .then(checkStatus);
+                .then(parseResponse);
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
     }
@@ -77,8 +75,7 @@ async function run() {
             headers: { 'X-Atlassian-Token': 'nocheck', 'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64') },
             body: fd
         })
-            .then(checkStatus)
-            .then(res => res.json())
+            .then(parseResponse)
             .then(json => {
 
 
@@ -96,8 +93,7 @@ async function run() {
                 const attachmentId = json.results[0].id;
 
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
-                    .then(checkStatus)
-                    .then(res => res.json())
+                    .then(parseResponse)
                     .then(json => console.log(json))
             })
     }
