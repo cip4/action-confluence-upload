@@ -23,7 +23,7 @@ const parseResponse = async response => {
     } else {
         console.debug(new Error().stack);
         console.debug(`HTTP Error Response: ${response.status} ${response.statusText}\n${body}`)
-        return core.setFailed(json.message);
+        throw new Error(json.message);
     }
 }
 
@@ -39,12 +39,14 @@ async function run() {
     // delete old files
     const attachments = await
         fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })
-            .then(parseResponse);
+            .then(parseResponse)
+            .catch(error => throw error);
 
     for (const attachment of attachments.results) {
         const resp = await
             fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })
-            .then(parseResponse);
+            .then(parseResponse)
+            .catch(error => throw error);
 
         const labelsAttachment = [];
 
@@ -54,9 +56,11 @@ async function run() {
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers })
-                .then(parseResponse);
+                .then(parseResponse)
+                .catch(error => throw error);
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
-                .then(parseResponse);
+                .then(parseResponse)
+                .catch(error => throw error);
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
     }
@@ -76,9 +80,8 @@ async function run() {
             body: fd
         })
             .then(parseResponse)
+            .catch(error => throw error)
             .then(json => {
-
-
                 // create body
                 const body = [];
 
@@ -94,8 +97,9 @@ async function run() {
 
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
                     .then(parseResponse)
-                    .then(json => console.log(json))
-            })
+                    .catch(error => throw error)
+                    .then(json => console.log(json));
+            });
     }
 }
 
