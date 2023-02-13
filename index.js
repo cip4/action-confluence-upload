@@ -1,5 +1,4 @@
 const core = require('@actions/core');
-const github = require('@actions/github');
 const glob = require('@actions/glob');
 const fetch = require('node-fetch');
 const fs = require('fs');
@@ -20,7 +19,7 @@ const checkStatus = response => {
         // response.status >= 200 && response.status < 300
         return response;
     } else {
-        const message = `HTTP Error Response: ${response.status} ${response.statusText}`;
+        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${response.text}`;
         console.trace(message);
         core.setFailed(message);
     }
@@ -84,7 +83,7 @@ async function run() {
                 // create body
                 const body = [];
 
-                for(var label of labels) {
+                for(const label of labels) {
                     body.push({ 
                         "prefix" : "global",
                         "name" : label.trim(),
