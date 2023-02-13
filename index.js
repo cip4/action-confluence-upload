@@ -15,19 +15,14 @@ const contentId = core.getInput('contentId');
 const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
-class HTTPResponseError extends Error {
-    constructor(response) {
-        super(`HTTP Error Response: ${response.status} ${response.statusText}`);
-        this.response = response;
-    }
-}
-
 const checkStatus = response => {
     if (response.ok) {
         // response.status >= 200 && response.status < 300
         return response;
     } else {
-        throw new HTTPResponseError(response);
+        const message = `HTTP Error Response: ${response.status} ${response.statusText}`;
+        console.trace(message);
+        core.setFailed(message);
     }
 }
 
@@ -59,11 +54,13 @@ async function run() {
         }
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
-            await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers }).then(res => checkStatus(res));
-            await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers }).then(res => checkStatus(res));
+            await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers })
+                .then(res => checkStatus(res));
+            await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
+                .then(res => checkStatus(res));
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
-    };
+    }
 
     // upload files
     const globber = await glob.create(filePattern)
