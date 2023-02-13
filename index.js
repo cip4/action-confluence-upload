@@ -16,7 +16,7 @@ const filePattern = core.getInput('filePattern');
 
 const parseResponse = async response => {
     const body = await response.text();
-    const json = JSON.parse(body.toJSON());
+    const json = JSON.parse(body);
     if (response.ok) {
         // response.status >= 200 && response.status < 300
         return json;
