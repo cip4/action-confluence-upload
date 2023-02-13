@@ -37,12 +37,14 @@ async function run() {
     };
 
     // delete old files
-    const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers }))
-        .then(checkStatus)
-        .json();
+    const attachments = await
+        fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })
+            .then(checkStatus)
+            .json();
 
     for (const attachment of attachments.results) {
-        const resp = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers }))
+        const resp = await
+            fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })
             .then(checkStatus)
             .json();
 
