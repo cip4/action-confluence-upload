@@ -14,12 +14,13 @@ const contentId = core.getInput('contentId');
 const labels = core.getInput('label').split(",");
 const filePattern = core.getInput('filePattern');
 
-const checkStatus = response => {
+const checkStatus = async response => {
     if (response.ok) {
         // response.status >= 200 && response.status < 300
         return response;
     } else {
-        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${response.text()}`;
+        const body = await response.text();
+        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${body}`;
         console.trace(message);
         core.setFailed(message);
     }
@@ -54,9 +55,9 @@ async function run() {
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers })
-                .then(res => checkStatus(res));
+                .then(checkStatus);
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
-                .then(res => checkStatus(res));
+                .then(checkStatus);
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
     }
@@ -75,7 +76,7 @@ async function run() {
             headers: { 'X-Atlassian-Token': 'nocheck', 'Authorization': 'Basic ' + Buffer.from(username + ':' + password).toString('base64') },
             body: fd
         })
-            .then(res => checkStatus(res))
+            .then(checkStatus)
             .then(res => res.json())
             .then(json => {
 
