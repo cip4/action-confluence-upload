@@ -40,13 +40,13 @@ async function run() {
     const attachments = await
         fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })
             .then(checkStatus)
-            .json();
+            .then(res => res.json());
 
     for (const attachment of attachments.results) {
         const resp = await
             fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })
             .then(checkStatus)
-            .json();
+            .then(res => res.json());
 
         const labelsAttachment = [];
 
@@ -78,7 +78,7 @@ async function run() {
             body: fd
         })
             .then(checkStatus)
-            .json()
+            .then(res => res.json())
             .then(json => {
 
 
@@ -97,7 +97,7 @@ async function run() {
 
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
                     .then(checkStatus)
-                    .json()
+                    .then(res => res.json())
                     .then(json => console.log(json))
             })
     }
