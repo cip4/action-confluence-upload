@@ -39,14 +39,12 @@ async function run() {
     // delete old files
     const attachments = await
         fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })
-            .then(parseResponse)
-            .catch(error => throw error);
+            .then(parseResponse);
 
     for (const attachment of attachments.results) {
         const resp = await
             fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })
-            .then(parseResponse)
-            .catch(error => throw error);
+            .then(parseResponse);
 
         const labelsAttachment = [];
 
@@ -56,11 +54,9 @@ async function run() {
 
         if (labelsAttachment.length > 0 && labelsAttachment.every(v => labels.includes(v))) {
             await fetch(url + "/rest/api/content/" + attachment.id, { method: 'DELETE', headers: headers })
-                .then(parseResponse)
-                .catch(error => throw error);
+                .then(parseResponse);
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
-                .then(parseResponse)
-                .catch(error => throw error);
+                .then(parseResponse);
             console.log("Attachment " + attachment.name + " has been deleted.")
         }
     }
@@ -80,7 +76,6 @@ async function run() {
             body: fd
         })
             .then(parseResponse)
-            .catch(error => throw error)
             .then(json => {
                 // create body
                 const body = [];
@@ -97,7 +92,6 @@ async function run() {
 
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
                     .then(parseResponse)
-                    .catch(error => throw error)
                     .then(json => console.log(json));
             });
     }
