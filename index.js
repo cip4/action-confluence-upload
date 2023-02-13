@@ -19,10 +19,11 @@ const checkStatus = async response => {
         // response.status >= 200 && response.status < 300
         return response;
     } else {
+        const json = await response.json();
         const body = await response.text();
-        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${body}`;
-        console.trace(message);
-        core.setFailed(message);
+        console.debug(new Error().stack);
+        console.debug(`HTTP Error Response: ${response.status} ${response.statusText}\n${body}`)
+        return core.setFailed(json.message);
     }
 }
 
@@ -36,17 +37,15 @@ async function run() {
     };
 
     // delete old files
-    const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers })).json();
-    if (attachments.message) {
-        return core.setFailed(attachments.message);
-    }
+    const attachments = await (await fetch(url + "/rest/api/content/" + contentId + "/child/attachment", { method: 'GET', headers: headers }))
+        .then(checkStatus)
+        .json();
 
     for (const attachment of attachments.results) {
-        const resp = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers })).json();
-        if (resp.message) {
-            return core.setFailed(resp.message);
-        }
-        
+        const resp = await (await fetch(url + "/rest/api/content/" + attachment.id + "/label", { method: 'GET', headers: headers }))
+            .then(checkStatus)
+            .json();
+
         const labelsAttachment = [];
 
         for(const result of resp.results) {
@@ -77,7 +76,7 @@ async function run() {
             body: fd
         })
             .then(checkStatus)
-            .then(res => res.json())
+            .json()
             .then(json => {
 
 
@@ -95,7 +94,8 @@ async function run() {
                 const attachmentId = json.results[0].id;
 
                 fetch(url + '/rest/api/content/' + attachmentId + '/label', { method: 'POST', headers: headers, body: JSON.stringify(body) })
-                    .then(res => res.json())
+                    .then(checkStatus)
+                    .json()
                     .then(json => console.log(json))
             })
     }
