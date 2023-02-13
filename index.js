@@ -19,7 +19,7 @@ const checkStatus = response => {
         // response.status >= 200 && response.status < 300
         return response;
     } else {
-        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${response.text}`;
+        const message = `HTTP Error Response: ${response.status} ${response.statusText}\n${response.text()}`;
         console.trace(message);
         core.setFailed(message);
     }
