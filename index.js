@@ -17,15 +17,22 @@ const filePattern = core.getInput('filePattern');
 
 const parseResponse = async response => {
     const body = await response.text();
-    const json = JSON.parse(body);
-    if (response.ok) {
-        // response.status >= 200 && response.status < 300
-        return json;
-    } else {
-        console.debug(new Error().stack);
-        console.debug(`HTTP Error Response: ${response.status} ${response.statusText}\n${body}`)
-        throw new Error(json.message);
+    let message;
+    try {
+        const json = JSON.parse(body);
+        message = json.message;
+        if (response.ok) {
+            // response.status >= 200 && response.status < 300
+            return json;
+        }
+    } catch (e) {
+        message = e.message;
+        core.error(e);
     }
+
+    console.debug(new Error().stack);
+    console.debug(`HTTP Error Response: ${response.status} ${response.statusText}\n${body}`)
+    throw new Error(message);
 }
 
 async function run() {
