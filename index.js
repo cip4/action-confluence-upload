@@ -65,7 +65,7 @@ async function run() {
                 .then(parseResponse);
             await fetch(url + "/rest/api/content/" + attachment.id + "?status=trashed", { method: 'DELETE', headers: headers })
                 .then(parseResponse);
-            console.log("Attachment " + attachment.name + " has been deleted.")
+            console.log("Attachment " + attachment.title + "/" + attachment.id + " has been deleted.")
         }
     }
 
