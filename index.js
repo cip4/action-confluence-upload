@@ -19,7 +19,7 @@ const parseResponse = async response => {
     const body = await response.text();
     let message;
     try {
-        const json = JSON.parse(body);
+        const json = body === '' ? {} : JSON.parse(body);
         message = json.message;
         if (response.ok) {
             // response.status >= 200 && response.status < 300
